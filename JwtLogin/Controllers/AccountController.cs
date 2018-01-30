@@ -10,6 +10,7 @@ using JwtLogin.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JwtLogin.Controllers
@@ -18,17 +19,17 @@ namespace JwtLogin.Controllers
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly IConfiguration _configuration;
+        private readonly JwtSettings _jwtSettings;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
-            IConfiguration configuration
+            IOptions<JwtSettings> jwtSettings
             )
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _configuration = configuration;
+            _jwtSettings = jwtSettings.Value;
         }
 
         [HttpPost]
@@ -85,13 +86,13 @@ namespace JwtLogin.Controllers
                 new Claim(ClaimTypes.Name, user.Email)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["JwtExpireMinutes"]));
+            var expires = DateTime.Now.AddMinutes(Convert.ToDouble(_jwtSettings.ExpireInMinutes));
 
             var token = new JwtSecurityToken(
-                _configuration["JwtIssuer"],
-                _configuration["JwtIssuer"],
+                _jwtSettings.Issuer,
+                _jwtSettings.Issuer,
                 claims,
                 expires: expires,
                 signingCredentials: creds

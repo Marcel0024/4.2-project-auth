@@ -30,6 +30,9 @@ namespace JwtLogin
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            var jwtSection = Configuration.GetSection("JwtSettings");
+            services.Configure<JwtSettings>(jwtSection);
             
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); 
             services
@@ -45,9 +48,9 @@ namespace JwtLogin
                     cfg.SaveToken = true;
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = Configuration["JwtIssuer"],
-                        ValidAudience = Configuration["JwtIssuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
+                        ValidIssuer = jwtSection["Issuer"],
+                        ValidAudience = jwtSection["Issuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"])),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });
@@ -65,6 +68,7 @@ namespace JwtLogin
             app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             app.UseAuthentication();
+
             app.UseMvcWithDefaultRoute();
         }
     }
