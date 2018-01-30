@@ -14,7 +14,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace JwtLogin.Controllers
 {
-    [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
         private readonly SignInManager<IdentityUser> _signInManager;
